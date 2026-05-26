@@ -35,7 +35,7 @@ jobs:
   deploy-frontend:
     name: Rollout Frontend to Vercel Edge
     needs: ci
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
@@ -64,7 +64,7 @@ jobs:
   deploy-backend:
     name: Trigger Backend Deployment on Render
     needs: ci
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Invoke Render Build Hook
