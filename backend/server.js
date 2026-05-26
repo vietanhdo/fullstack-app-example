@@ -14,10 +14,12 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 
 /*
-// Optional: Restrict allowed origins and methods for more control
+// [Security] Cross-Origin Resource Sharing
+// Khi lên Production thực tế, anh nên uncomment đoạn này và thay URL của Vercel vào
+// để ngăn chặn các domain lạ gọi trộm API, gây tốn băng thông (FinOps impact).
 app.use(cors({
-  origin: 'http://localhost:3000', // Allow requests only from the React app running on localhost:3000
-  methods: ['GET', 'POST'],        // Allow only GET and POST requests
+  origin: ['http://localhost:3000', 'https://ten-du-an-cua-anh.vercel.app'], 
+  methods: ['GET', 'POST'],        
 }));
 */
 
@@ -35,8 +37,24 @@ app.get('/api/project', (req, res) => {
     });
 });
 
-// Start the server and listen on the specified port
-app.listen(PORT, () => {
+// [Reliability & Scalability] Cloud-Native Server Initialization
+// BẮT BUỘC thêm '0.0.0.0' để Render Reverse Proxy có thể route traffic từ ngoài internet vào Docker container.
+// Nếu không có '0.0.0.0', app chỉ listen ở localhost nội bộ của container và Render sẽ báo lỗi Port Scan Timeout.
+const server = app.listen(PORT, '0.0.0.0', () => {
     // Log a message to indicate the server is running
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server space initialized and listening on port ${PORT}`);
+});
+
+// [Reliability] Graceful Shutdown Handling
+// Render (hay AKS/Kubernetes) sẽ gửi tín hiệu SIGTERM khi deploy bản mới hoặc scale-in.
+// Đoạn code này giúp Server dọn dẹp port sạch sẽ, hoàn tất các request đang dở trước khi tắt,
+// triệt tiêu tình trạng zombie process gây lỗi EADDRINUSE như lúc anh test ở local.
+['SIGINT', 'SIGTERM'].forEach((signal) => {
+  process.on(signal, () => {
+    console.log(`\n[${signal}] signal received: closing HTTP server`);
+    server.close(() => {
+      console.log('HTTP server closed gracefully');
+      process.exit(0);
+    });
+  });
 });
