@@ -80,6 +80,209 @@ async function fetchPunkV3(path, fallbackFn) {
   }
 }
 
+// ─── GET / — Status Dashboard ────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  const uptimeSec = process.uptime();
+  const hours = Math.floor(uptimeSec / 3600);
+  const mins  = Math.floor((uptimeSec % 3600) / 60);
+  const secs  = Math.floor(uptimeSec % 60);
+  const uptime = `${hours}h ${mins}m ${secs}s`;
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('vi-VN', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    timeZone: 'Asia/Ho_Chi_Minh'
+  });
+  const timeStr = now.toLocaleTimeString('vi-VN', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    timeZone: 'Asia/Ho_Chi_Minh'
+  });
+
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tiger Tribe BFF — Status</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0e17;
+      color: #e0e6f0;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .container {
+      max-width: 720px; width: 90%;
+      background: linear-gradient(145deg, #111827, #0d1321);
+      border: 1px solid #1e293b;
+      border-radius: 20px;
+      padding: 48px 40px;
+      box-shadow: 0 0 60px rgba(34, 211, 138, 0.06), 0 0 120px rgba(34, 211, 138, 0.03);
+    }
+    .status-row {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .pulse {
+      width: 12px; height: 12px;
+      background: #22d38a; border-radius: 50%;
+      animation: pulse 2s infinite;
+      box-shadow: 0 0 8px #22d38a;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .6; transform: scale(1.3); }
+    }
+    .status-text { font-size: 14px; font-weight: 600; color: #22d38a; text-transform: uppercase; letter-spacing: 2px; }
+    h1 {
+      font-size: 32px; font-weight: 900;
+      background: linear-gradient(135deg, #22d38a, #3b82f6);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin: 4px 0 4px;
+    }
+    .subtitle { color: #64748b; font-size: 14px; margin-bottom: 32px; }
+    .badge { display: inline-block; background: #1e293b; color: #22d38a; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+
+    .info-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 16px; margin-bottom: 32px;
+    }
+    .info-card {
+      background: #0f172a; border: 1px solid #1e293b;
+      border-radius: 12px; padding: 20px;
+    }
+    .info-card .label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+    .info-card .value { font-size: 20px; font-weight: 700; color: #f1f5f9; }
+    .info-card .value.green { color: #22d38a; }
+    .info-card .value.blue { color: #3b82f6; }
+
+    .section-title { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+
+    .endpoints { margin-bottom: 32px; }
+    .endpoint {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; margin-bottom: 6px;
+      background: #0f172a; border: 1px solid #1e293b;
+      border-radius: 10px; font-size: 13px;
+      transition: border-color .2s;
+    }
+    .endpoint:hover { border-color: #22d38a; }
+    .method { font-weight: 700; color: #22d38a; min-width: 36px; }
+    .path { color: #94a3b8; font-family: 'SF Mono', 'Fira Code', monospace; }
+    .desc { color: #475569; margin-left: auto; font-size: 12px; }
+
+    .pipeline {
+      background: #0f172a; border: 1px solid #1e293b;
+      border-radius: 12px; padding: 20px; margin-bottom: 32px;
+    }
+    .pipeline-steps {
+      display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+      justify-content: center;
+    }
+    .step {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px;
+      background: #111827; border: 1px solid #1e293b;
+      border-radius: 8px; font-size: 12px; font-weight: 600;
+      white-space: nowrap;
+    }
+    .step .icon { font-size: 16px; }
+    .arrow { color: #22d38a; font-size: 18px; margin: 0 4px; }
+
+    .footer {
+      text-align: center; color: #334155; font-size: 12px;
+      padding-top: 20px; border-top: 1px solid #1e293b;
+    }
+    .footer a { color: #3b82f6; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      .info-grid { grid-template-columns: 1fr; }
+      .pipeline-steps { flex-direction: column; }
+      .arrow { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="status-row">
+      <div class="pulse"></div>
+      <span class="status-text">Operational</span>
+      <span class="badge">BFF</span>
+    </div>
+    <h1>🍺 Tiger Tribe BFF</h1>
+    <p class="subtitle">Backend-for-Frontend · HEINEKEN × Tiger Tribe · Ho Chi Minh City</p>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="label">Server Uptime</div>
+        <div class="value green">${uptime}</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Node.js</div>
+        <div class="value">${process.version}</div>
+      </div>
+      <div class="info-card">
+        <div class="label">📅 Ngày</div>
+        <div class="value blue" style="font-size:15px">${dateStr}</div>
+      </div>
+      <div class="info-card">
+        <div class="label">🕐 Giờ VN</div>
+        <div class="value green">${timeStr}</div>
+      </div>
+    </div>
+
+    <div class="endpoints">
+      <div class="section-title">📡 API Endpoints</div>
+      <div class="endpoint">
+        <span class="method">GET</span>
+        <span class="path">/api/health</span>
+        <span class="desc">Health check</span>
+      </div>
+      <div class="endpoint">
+        <span class="method">GET</span>
+        <span class="path">/api/beers</span>
+        <span class="desc">List beers (paginated)</span>
+      </div>
+      <div class="endpoint">
+        <span class="method">GET</span>
+        <span class="path">/api/beers/search?q=</span>
+        <span class="desc">Search beers</span>
+      </div>
+      <div class="endpoint">
+        <span class="method">GET</span>
+        <span class="path">/api/beers/:id</span>
+        <span class="desc">Beer detail</span>
+      </div>
+    </div>
+
+    <div class="pipeline">
+      <div class="section-title">⚙️ CI/CD Pipeline</div>
+      <div class="pipeline-steps">
+        <div class="step"><span class="icon">📝</span> Code Push</div>
+        <span class="arrow">→</span>
+        <div class="step"><span class="icon">🧪</span> CI Test</div>
+        <span class="arrow">→</span>
+        <div class="step"><span class="icon">🔒</span> Security</div>
+        <span class="arrow">→</span>
+        <div class="step"><span class="icon">🚀</span> Deploy</div>
+        <span class="arrow">→</span>
+        <div class="step"><span class="icon">🌐</span> Live</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Powered by <a href="https://expressjs.com">Express.js</a> · Deployed on <a href="https://render.com">Render</a> · 
+      CI/CD via <a href="https://github.com/features/actions">GitHub Actions</a>
+    </div>
+  </div>
+</body>
+</html>`);
+});
+
 // ─── GET /api/health ──────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({
