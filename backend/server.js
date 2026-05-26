@@ -26,6 +26,17 @@ app.use(cors({
 // Use the JSON middleware to automatically parse incoming JSON requests
 app.use(express.json());
 
+// ─── GET /api/health ──────────────────────────────────────────────────────────
+// Health check endpoint — dùng cho monitoring và demo
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    service: 'Tiger Tribe BFF',
+  });
+});
+
 // Define a GET route at /api/project to handle API requests from the frontend
 app.get('/api/project', (req, res) => {
     // Send a JSON response containing information about the project
@@ -40,21 +51,23 @@ app.get('/api/project', (req, res) => {
 // [Reliability & Scalability] Cloud-Native Server Initialization
 // BẮT BUỘC thêm '0.0.0.0' để Render Reverse Proxy có thể route traffic từ ngoài internet vào Docker container.
 // Nếu không có '0.0.0.0', app chỉ listen ở localhost nội bộ của container và Render sẽ báo lỗi Port Scan Timeout.
-const server = app.listen(PORT, '0.0.0.0', () => {
-    // Log a message to indicate the server is running
-    console.log(`Server space initialized and listening on port ${PORT}`);
-});
+if (require.main === module) {
+  const server = app.listen(PORT, '0.0.0.0', () => {
+      // Log a message to indicate the server is running
+      console.log(`Server space initialized and listening on port ${PORT}`);
+  });
 
-// [Reliability] Graceful Shutdown Handling
-// Render (hay AKS/Kubernetes) sẽ gửi tín hiệu SIGTERM khi deploy bản mới hoặc scale-in.
-// Đoạn code này giúp Server dọn dẹp port sạch sẽ, hoàn tất các request đang dở trước khi tắt,
-// triệt tiêu tình trạng zombie process gây lỗi EADDRINUSE như lúc anh test ở local.
-['SIGINT', 'SIGTERM'].forEach((signal) => {
-  process.on(signal, () => {
-    console.log(`\n[${signal}] signal received: closing HTTP server`);
-    server.close(() => {
-      console.log('HTTP server closed gracefully');
-      process.exit(0);
+  // [Reliability] Graceful Shutdown Handling
+  // Render (hay AKS/Kubernetes) sẽ gửi tín hiệu SIGTERM khi deploy bản mới hoặc scale-in.
+  ['SIGINT', 'SIGTERM'].forEach((signal) => {
+    process.on(signal, () => {
+      console.log(`\n[${signal}] signal received: closing HTTP server`);
+      server.close(() => {
+        console.log('HTTP server closed gracefully');
+        process.exit(0);
+      });
     });
   });
-});
+}
+
+module.exports = app;

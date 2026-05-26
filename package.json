@@ -4,7 +4,8 @@
     "scripts": {
         "start": "concurrently \"npm run server\" \"npm run client\"",
         "server": "nodemon backend/server.js",
-        "client": "npm start --prefix frontend"
+        "client": "npm start --prefix frontend",
+        "test": "cd frontend && npx react-scripts test --watchAll=false"
     },
     "devDependencies": {
         "concurrently": "^8.2.0",
