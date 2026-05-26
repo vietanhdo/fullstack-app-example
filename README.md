@@ -1,4 +1,4 @@
-Fullstack Project with React and Node.js
+Fullstack Project with React and Node.js [![CI/CD](https://github.com/vietanhdo/fullstack-app-example/actions/workflows/deploy.yml/badge.svg)](https://github.com/vietanhdo/fullstack-app-example/actions/workflows/deploy.yml)
 ========================================
 
 This project is a **fullstack application** combining a **React frontend** and a **Node.js/Express backend** within a single project directory. This README will guide you through understanding the project structure, navigating the files, and running both applications together.
