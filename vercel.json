@@ -1,0 +1,7 @@
+{
+  "git": {
+    "deploymentEnabled": {
+      "demo/broken-code": false
+    }
+  }
+}
