@@ -131,3 +131,10 @@ Tips for Working with This Structure
 
 
 This structure allows you to manage the React frontend and Node.js backend independently while keeping everything organized within a single project. This setup makes it easy to develop and run a fullstack application while maintaining a clear separation between frontend and backend code.
+
+
+
+
+
+
+Viet Anh Do
