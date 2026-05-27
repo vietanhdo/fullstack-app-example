@@ -64,7 +64,7 @@ function App() {
             <span className="sep">×</span>
             <span className="badge outline">TIGER TRIBE</span>
           </div>
-          <h1>Beer Explorer</h1>
+          <h1>Beer Explorer - Demo-01</h1>
           <p className="subtitle">
             <span className="live-dot"></span>
             Data from Punk API · Proxied via Tiger Tribe BFF
